@@ -91,7 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     authService.logout();
     localStorage.removeItem(AUTH_STORAGE_KEY);
     apiService.setToken(null);
-    setIsModalOpen(false);};
+    setIsModalOpen(false);
+
+    window.dispatchEvent(new CustomEvent('navigate', { detail: 'dashboard' }));
+  };
   const showLogoutModal = () => setIsModalOpen(true);
 
   const updateProfile = (data: Partial<AuthUser['profile']>) => {

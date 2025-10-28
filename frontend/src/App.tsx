@@ -22,6 +22,12 @@ function AppContent() {
   const { user, loading } = useAuth();
 
   React.useEffect(() => {
+    if (user) {
+      setActiveSection('dashboard');
+    }
+  }, [user]);
+
+  React.useEffect(() => {
     const handleNavigate = (event: any) => {
       setActiveSection(event.detail);
     };
