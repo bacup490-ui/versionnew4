@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { dashboardService } from '../../services/dashboardService';
-import { useApiError } from '../../hooks/useApiError';
 
 interface ProjectStatusData {
   name: string;
@@ -9,59 +7,26 @@ interface ProjectStatusData {
   color: string;
 }
 
-export default function ProjectStatusChart() {
-  const { handleApiError } = useApiError();
-  const [chartData, setChartData] = useState<ProjectStatusData[]>([]);
-  const [loading, setLoading] = useState(true);
+interface ProjectStatusChartProps {
+  activeProjects: number;
+  totalProjects: number;
+}
 
-  useEffect(() => {
-    loadProjectStatusData();
-  }, []);
-
-  const loadProjectStatusData = async () => {
-    try {
-      setLoading(true);
-      const stats = await dashboardService.getProjectStatusStats();
-
-      const data: ProjectStatusData[] = [
-        { name: 'Planification', value: stats.planning, color: '#3b82f6' },
-        { name: 'En cours', value: stats.inProgress, color: '#f59e0b' },
-        { name: 'Terminé', value: stats.completed, color: '#10b981' },
-        { name: 'En pause', value: stats.onHold, color: '#6b7280' },
-        { name: 'Annulé', value: stats.cancelled, color: '#ef4444' },
-      ].filter(item => item.value > 0);
-
-      setChartData(data);
-    } catch (error: any) {
-      handleApiError(error, 'Erreur lors du chargement des statuts de projets');
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function ProjectStatusChart({ activeProjects, totalProjects }: ProjectStatusChartProps) {
+  const chartData: ProjectStatusData[] = [
+    { name: 'Projets Actifs', value: activeProjects, color: '#f59e0b' },
+    { name: 'Projets Terminés', value: totalProjects, color: '#10b981' },
+  ].filter(item => item.value > 0);
 
   const renderCustomizedLabel = ({ name, value }: any) => {
     return `${name}: ${value}`;
   };
 
-  if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-gray-800 dark:to-gray-900 rounded-xl shadow-sm border border-orange-200 dark:border-gray-700 p-6">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Répartition des Statuts de Projets</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">État actuel de tous les projets</p>
-        </div>
-        <div className="h-80 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      </div>
-    );
-  }
-
   if (chartData.length === 0) {
     return (
       <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-gray-800 dark:to-gray-900 rounded-xl shadow-sm border border-orange-200 dark:border-gray-700 p-6">
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Répartition des Statuts de Projets</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Répartition des Projets</h3>
           <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">État actuel de tous les projets</p>
         </div>
         <div className="h-80 flex items-center justify-center">
@@ -74,8 +39,8 @@ export default function ProjectStatusChart() {
   return (
     <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-gray-800 dark:to-gray-900 rounded-xl shadow-sm border border-orange-200 dark:border-gray-700 p-6">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Répartition des Statuts de Projets</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">État actuel de tous les projets</p>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Répartition des Projets</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Actifs vs Terminés</p>
       </div>
 
       <div className="h-80">

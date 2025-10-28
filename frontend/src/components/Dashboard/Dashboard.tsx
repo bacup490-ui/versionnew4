@@ -274,7 +274,10 @@ export default function Dashboard() {
       {/* Graphiques */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ProgressChart />
-        <ProjectStatusChart />
+        <ProjectStatusChart
+          activeProjects={metrics.activeProjects}
+          totalProjects={metrics.totalProjects}
+        />
       </div>
 
       {/* Diagramme et activité récente */}

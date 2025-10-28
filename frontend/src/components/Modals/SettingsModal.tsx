@@ -273,8 +273,6 @@ export default function SettingsModal({ isOpen, onClose, type }: SettingsModalPr
         errors.newPassword = 'Le mot de passe doit contenir au moins une minuscule';
       } else if (!/[0-9]/.test(newPassword)) {
         errors.newPassword = 'Le mot de passe doit contenir au moins un chiffre';
-      } else if (!/[@#$%^&+=!]/.test(newPassword)) {
-        errors.newPassword = 'Le mot de passe doit contenir au moins un caractère spécial';
       }
     }
 
@@ -782,28 +780,17 @@ export default function SettingsModal({ isOpen, onClose, type }: SettingsModalPr
               <li>Au moins 8 caractères</li>
               <li>Une lettre majuscule et une minuscule</li>
               <li>Au moins un chiffre</li>
-              <li>Un caractère spécial (@, #, $, etc.)</li>
             </ul>
           </div>
 
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <h5 className="font-medium text-red-900 dark:text-red-200 mb-2 flex items-center gap-2">
-              <KeyRound className="h-5 w-5" />
-              <span>Attention</span>
-            </h5>
-            <p className="text-sm text-red-700 dark:text-red-300 mb-3">
-              Après avoir changé votre mot de passe, vous ne pourrez plus vous connecter avec l'ancien mot de passe.
-              Assurez-vous de bien mémoriser votre nouveau mot de passe.
-            </p>
-            <button
-              onClick={handlePasswordChangeRequest}
-              disabled={!currentPassword || !newPassword || !confirmPassword || loading}
-              className="bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <KeyRound className="h-4 w-4" />
-              <span>Changer le mot de passe</span>
-            </button>
-          </div>
+          <button
+            onClick={handlePasswordChangeRequest}
+            disabled={!currentPassword || !newPassword || !confirmPassword || loading}
+            className="w-full bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <KeyRound className="h-4 w-4" />
+            <span>Changer le mot de passe</span>
+          </button>
         </div>
       </div>
     </div>
