@@ -6,7 +6,6 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { userService, UpdateProfileRequest } from '../../services/userService';
 import { validateName, validatePhone } from '../../utils/validation';
-import ConfirmModal from './ConfirmModal';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -46,7 +45,7 @@ export default function SettingsModal({ isOpen, onClose, type }: SettingsModalPr
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
-  const [showPasswordConfirmModal, setShowPasswordConfirmModal] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState({
     currentPassword: '',
     newPassword: '',
@@ -288,26 +287,31 @@ export default function SettingsModal({ isOpen, onClose, type }: SettingsModalPr
 
   const handlePasswordChangeRequest = () => {
     if (validatePasswordFields()) {
-      setShowPasswordConfirmModal(true);
+      setShowPasswordConfirm(true);
     }
   };
 
   const handleChangePassword = async () => {
-    setShowPasswordConfirmModal(false);
-
     try {
       setLoading(true);
-      setError(null);
+      setPasswordErrors({ currentPassword: '', newPassword: '', confirmPassword: '' });
       await userService.changePassword(currentPassword, newPassword);
       setSuccess('Mot de passe modifié avec succès');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setPasswordErrors({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowPasswordConfirm(false);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.message || 'Erreur lors du changement de mot de passe');
-      setTimeout(() => setError(null), 3000);
+      const errorMessage = err.message || 'Erreur lors du changement de mot de passe';
+      if (errorMessage.toLowerCase().includes('actuel') || errorMessage.toLowerCase().includes('incorrect') || errorMessage.toLowerCase().includes('current')) {
+        setPasswordErrors(prev => ({ ...prev, currentPassword: errorMessage }));
+      } else if (errorMessage.toLowerCase().includes('nouveau') || errorMessage.toLowerCase().includes('new')) {
+        setPasswordErrors(prev => ({ ...prev, newPassword: errorMessage }));
+      } else {
+        setPasswordErrors(prev => ({ ...prev, currentPassword: errorMessage }));
+      }
+      setShowPasswordConfirm(false);
     } finally {
       setLoading(false);
     }
@@ -783,14 +787,47 @@ export default function SettingsModal({ isOpen, onClose, type }: SettingsModalPr
             </ul>
           </div>
 
-          <button
-            onClick={handlePasswordChangeRequest}
-            disabled={!currentPassword || !newPassword || !confirmPassword || loading}
-            className="w-full bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <KeyRound className="h-4 w-4" />
-            <span>Changer le mot de passe</span>
-          </button>
+          {!showPasswordConfirm ? (
+            <button
+              onClick={handlePasswordChangeRequest}
+              disabled={!currentPassword || !newPassword || !confirmPassword || loading}
+              className="w-full bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <KeyRound className="h-4 w-4" />
+              <span>Changer le mot de passe</span>
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg p-4">
+                <p className="text-sm font-medium text-orange-800 dark:text-orange-300 text-center">
+                  Voulez-vous vraiment changer le mot de passe ?
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowPasswordConfirm(false)}
+                  disabled={loading}
+                  className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleChangePassword}
+                  disabled={loading}
+                  className="flex-1 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Validation...</span>
+                    </>
+                  ) : (
+                    <span>OK</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -998,15 +1035,7 @@ export default function SettingsModal({ isOpen, onClose, type }: SettingsModalPr
   };
 
   return (
-    <>
-      <ConfirmModal
-        isOpen={showPasswordConfirmModal}
-        title="Confirmer le changement de mot de passe"
-        message="Êtes-vous sûr de vouloir changer votre mot de passe ? Après cette action, vous devrez utiliser le nouveau mot de passe pour vous connecter."
-        onConfirm={handleChangePassword}
-        onCancel={() => setShowPasswordConfirmModal(false)}
-      />
-      <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="sticky top-0 bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700 z-10">
           <div className="flex items-center justify-between">
@@ -1028,6 +1057,5 @@ export default function SettingsModal({ isOpen, onClose, type }: SettingsModalPr
         </div>
       </div>
     </div>
-    </>
   );
 }
